@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import List, Tuple
 import operator
 from tqdm import tqdm
+from math import lcm
+from functools import reduce
 
 @dataclass
 class Item:
@@ -66,13 +68,13 @@ def parseInput():
             current_monkey = Monkey([], None, 0, -1, -1, 0)
             is_monkey_data_being_processed = True
 
-def item_inspection(current_monkey_index: int, current_item_index: int):
+def item_inspection(current_monkey_index: int, current_item_index: int, common_mod: int):
     current_monkey = monkey_list[current_monkey_index]
     current_item = current_monkey.starting_items[current_item_index]
     if current_monkey.operation[1] == 0:
-        current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_item.worry_level))
+        current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_item.worry_level)) % common_mod
     else:
-       current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_monkey.operation[1]))
+       current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_monkey.operation[1])) % common_mod
     current_monkey.items_inspected += 1
     
 def find_monkey_to_hand_item(current_monkey_index: int, current_item_index: int) -> int:
@@ -85,23 +87,23 @@ def find_monkey_to_hand_item(current_monkey_index: int, current_item_index: int)
         monkey_to_return_to = current_monkey.false_monkey
     return monkey_to_return_to    
 
-def monkey_simulation(current_monkey_index: int):
+def monkey_simulation(current_monkey_index: int, common_mod: int):
     current_monkey = monkey_list[current_monkey_index]
     items_list = current_monkey.starting_items
     for index, item in enumerate(items_list):
-        item_inspection(current_monkey_index, index)
+        item_inspection(current_monkey_index, index, common_mod)
         monkey_to_pass_item = find_monkey_to_hand_item(current_monkey_index, index)
         monkey_to_pass = monkey_list[monkey_to_pass_item]
         monkey_to_pass.starting_items.append(item)
     current_monkey.starting_items = []
           
-def round_simulation():
+def round_simulation(common_mod):
     for index, _ in enumerate(monkey_list):
-        monkey_simulation(index)
+        monkey_simulation(index, common_mod)
 
-def game_simulation():
+def game_simulation(common_mod):
     for round in tqdm(range(number_of_rounds), desc='Rounds'):
-        round_simulation()
+        round_simulation(common_mod)
         # print(f'Round {round} completed');
         
 def find_monkey_business() -> int:
@@ -110,5 +112,7 @@ def find_monkey_business() -> int:
 
 if __name__ == '__main__':
     parseInput()
-    game_simulation()
+    divisibile_list = [x.divisible_test for x in monkey_list]
+    common_mod = reduce(lcm, divisibile_list)
+    game_simulation(common_mod)
     print(find_monkey_business())
