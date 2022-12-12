@@ -1,7 +1,6 @@
 import sys
 from dataclasses import dataclass
-from typing import List, Tuple, MutableSet, Deque
-from collections import deque
+from typing import List, Tuple, MutableSet
 
 @dataclass
 class Coordinate:
