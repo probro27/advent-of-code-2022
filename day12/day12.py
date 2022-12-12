@@ -35,20 +35,17 @@ class Person:
         self.ended = False
     
     def decide_next_move(self, steps: int, coordinate_to_check: Coordinate):
-        r, c = coordinate_to_check.x, coordinate_to_check.y
-        for nr, nc in [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]:
-            if nr < 0 or nc < 0 or nr >= len(elevation_map) or nc >= len(elevation_map[0]):
+        row, col = coordinate_to_check.x, coordinate_to_check.y
+        for check_row, check_col in [(row + 1, col), (row - 1, col), (row, col + 1), (row, col - 1)]:
+            if (check_row < 0 or check_col < 0 or check_row >= len(elevation_map) or 
+                check_col >= len(elevation_map[0])) or Coordinate(check_row, check_col) in self.previous_coordinates or elevation_map[check_row][check_col] - elevation_map[row][col] > 1:
                 continue
-            if Coordinate(nr, nc) in self.previous_coordinates:
-                continue
-            if elevation_map[nr][nc] - elevation_map[r][c] > 1:
-                continue
-            if nr == ending_position.x and nc == ending_position.y:
+            if check_row == ending_position.x and check_col == ending_position.y:
                 self.number_of_steps_travelled = steps + 1
                 self.ended = True
                 return
-            self.previous_coordinates.add(Coordinate(nr, nc))
-            self.bfs.append((steps + 1, Coordinate(nr, nc)))
+            self.previous_coordinates.add(Coordinate(check_row, check_col))
+            self.bfs.append((steps + 1, Coordinate(check_row, check_col)))
         
     
     def simulate_movement(self):
