@@ -20,7 +20,7 @@ class Person:
     starting_position: Coordinate
     ending_position: Coordinate
     previous_coordinates: MutableSet[Coordinate]
-    deque: Deque[Tuple[int, Coordinate]]
+    bfs: List[Tuple[int, Coordinate]]
     ended: bool
     
     
@@ -31,8 +31,8 @@ class Person:
         self.ending_position = ending_position
         self.previous_coordinates = set()
         self.previous_coordinates.add(starting_position)
-        self.deque = deque()
-        self.deque.append((0, starting_position))
+        self.bfs: List[Tuple[int, Coordinate]] = []
+        self.bfs.append((0, starting_position))
         self.ended = False
     
     def decide_next_move(self, steps: int, coordinate_to_check: Coordinate):
@@ -49,12 +49,12 @@ class Person:
                 self.ended = True
                 return
             self.previous_coordinates.add(Coordinate(nr, nc))
-            self.deque.append((steps + 1, Coordinate(nr, nc)))
+            self.bfs.append((steps + 1, Coordinate(nr, nc)))
         
     
     def simulate_movement(self):
-        while self.deque and not self.ended:
-            steps, coordinate_to_check = self.deque.popleft()
+        while self.bfs and not self.ended:
+            steps, coordinate_to_check = self.bfs.pop(0)
             self.decide_next_move(steps, coordinate_to_check)
             
         
