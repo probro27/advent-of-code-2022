@@ -87,15 +87,6 @@ class distress_signal:
         index2 = common_list.index([[6]])
         return (index1 + 1) * (index2 + 1)
 
-def find_elements_to_delete(final_list_last_element: List[any]) -> int:
-    value = 0
-    for element in final_list_last_element:
-        if type(element) == list:
-            value += 2 + find_elements_to_delete(element)
-        else:
-            value += 1
-    return value
-
 def eval_parse_input():
     distress_signal_send: distress_signal = None
     signal_list: List[Pair] = []
