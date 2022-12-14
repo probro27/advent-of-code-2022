@@ -7,3 +7,8 @@ This time I am doing the challenge in Python but I plan to provide them in more 
 Hope you'll enjoy the challenge as well!
 
 Have a great one!
+
+<!--- advent_readme_stars table --->
+## 2022 results
+| Day | Part 1 | Part 2 |
+| :---: | :---: | :---: |
