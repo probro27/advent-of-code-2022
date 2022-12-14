@@ -10,5 +10,3 @@ Have a great one!
 
 <!--- advent_readme_stars table --->
 ## 2022 results
-| Day | Part 1 | Part 2 |
-| :---: | :---: | :---: |
