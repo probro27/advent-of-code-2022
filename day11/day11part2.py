@@ -13,7 +13,7 @@ class Item:
 @dataclass
 class Monkey:
     starting_items: List[Item]
-    operation: Tuple[str, int]
+    operation: Tuple[str, int] | None
     divisible_test: int
     true_monkey: int
     false_monkey: int
@@ -35,10 +35,10 @@ number_of_rounds: int = 10000
 
 def parseInput():
     is_monkey_data_being_processed = False
-    current_monkey: Monkey = None
+    current_monkey: Monkey | None = None
     for line in sys.stdin:
         line = line.strip()
-        if is_monkey_data_being_processed:
+        if is_monkey_data_being_processed and current_monkey:
             split_line = line.split(' ')
             if split_line[0] == 'Starting':
                 items_list = split_line[2: ]
@@ -70,12 +70,13 @@ def parseInput():
 
 def item_inspection(current_monkey_index: int, current_item_index: int, common_mod: int):
     current_monkey = monkey_list[current_monkey_index]
-    current_item = current_monkey.starting_items[current_item_index]
-    if current_monkey.operation[1] == 0:
-        current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_item.worry_level)) % common_mod
-    else:
-       current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_monkey.operation[1])) % common_mod
-    current_monkey.items_inspected += 1
+    if current_monkey.operation:
+        current_item = current_monkey.starting_items[current_item_index]
+        if current_monkey.operation[1] == 0:
+            current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_item.worry_level)) % common_mod
+        else:
+            current_item.worry_level = int(resolve_operators[current_monkey.operation[0]](current_item.worry_level, current_monkey.operation[1])) % common_mod
+        current_monkey.items_inspected += 1
     
 def find_monkey_to_hand_item(current_monkey_index: int, current_item_index: int) -> int:
     current_monkey = monkey_list[current_monkey_index]
