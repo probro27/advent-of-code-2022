@@ -15,9 +15,10 @@ class State(Enum):
 class Coordinate:
     x: int
     y: int
+
     def __lt__(self, __o: object) -> bool:
-        return self.x < __o.x and self.y < __o.y
-    
+        return self.x < __o.x and self.y < __o.y # type: ignore
+ 
 @dataclass
 class AreaBlock:
     coordinate: Coordinate
@@ -45,8 +46,8 @@ class Area:
     def __init__(self):
         self.cave_map = []
         self.cave_map_dict = dict()
-        self.smallest_coordinate = None
-        self.largest_coordinate = None
+        self.smallest_coordinate = None # type: ignore 
+        self.largest_coordinate = None # type: ignore   
         self.x_offset = -1
         self.y_offset = -1
         self.map_length = 0
@@ -67,7 +68,7 @@ class Area:
         final_coordinate.y = coordinate.y
         return final_coordinate
 
-    def parse_input(self):
+    def parse_input(self, part: int = 1):
         for line in sys.stdin:
             split_line = line.split(' -> ')
             split_line_coordinate = [AreaBlock(Coordinate(int(x.split(',')[0]), int(x.split(',')[1])), State.rock) for x in split_line]
@@ -107,8 +108,12 @@ class Area:
                                 self.largest_coordinate.y = column
         self.map_length = self.largest_coordinate.x - self.smallest_coordinate.x
         self.map_width = self.largest_coordinate.y # - self.smallest_coordinate.y (we want 0 for sand)
-        self.smallest_coordinate.x -= 500
-        self.largest_coordinate.x += 500
+        if part == 2:
+            self.smallest_coordinate.x -= 500
+            self.largest_coordinate.x += 500
+        else:
+            self.smallest_coordinate.x -= 1
+            self.largest_coordinate.x += 1
         self.smallest_coordinate.y = 0
         self.x_offset = self.smallest_coordinate.x
         self.y_offset = 0 # not self.smallest_coordinate.y (sand enters at 0)
@@ -166,20 +171,22 @@ class Area:
         current_sand_position_transformed = self.coordinate_transform(sand_position)
         cave_row = self.cave_map[current_sand_position_transformed.x]
         first_rock_in_path = next((x for x in cave_row if (lambda y: (y.state == State.rock or y.state == State.sand) and y.coordinate.y > current_sand_position_transformed.y)(x)), None)
-        current_sand_position = Coordinate(first_rock_in_path.coordinate.x, first_rock_in_path.coordinate.y - 1)
-        current_sand_position_transform = self.coordinate_transform(current_sand_position)
-        if self.cave_map[(current_sand_position_transform.x - 1)][current_sand_position_transform.y + 1].state == State.air:
-            new_sand_position = self.reverse_coordinate_transform(Coordinate(current_sand_position_transform.x - 1, current_sand_position_transform.y + 1))
-            self.find_sand_drop_position_2(new_sand_position)
-            return
-        elif self.cave_map[(current_sand_position_transform.x + 1)][current_sand_position_transform.y + 1].state == State.air: 
-            new_sand_position = self.reverse_coordinate_transform(Coordinate(current_sand_position_transform.x + 1, current_sand_position_transform.y + 1))
-            self.find_sand_drop_position_2(new_sand_position)
-            return
-        else:
-            new_sand_position = self.reverse_coordinate_transform(current_sand_position_transform)
-            self.current_sand_position = new_sand_position
-            return    
+        if first_rock_in_path is not None:
+            current_sand_position = Coordinate(first_rock_in_path.coordinate.x, first_rock_in_path.coordinate.y - 1)
+            current_sand_position_transform = self.coordinate_transform(current_sand_position)
+            if self.cave_map[(current_sand_position_transform.x - 1)][current_sand_position_transform.y + 1].state == State.air:
+                new_sand_position = self.reverse_coordinate_transform(Coordinate(current_sand_position_transform.x - 1, current_sand_position_transform.y + 1))
+                self.find_sand_drop_position_2(new_sand_position)
+                return
+            elif self.cave_map[(current_sand_position_transform.x + 1)][current_sand_position_transform.y + 1].state == State.air: 
+                new_sand_position = self.reverse_coordinate_transform(Coordinate(current_sand_position_transform.x + 1, current_sand_position_transform.y + 1))
+                self.find_sand_drop_position_2(new_sand_position)
+                return
+            else:
+                new_sand_position = self.reverse_coordinate_transform(current_sand_position_transform)
+                self.current_sand_position = new_sand_position
+                return  
+              
     def simulate_sand_drop(self):
         while True:
             previous_sand_position = deepcopy(self.current_sand_position)
@@ -219,12 +226,15 @@ class Area:
     
 if __name__ == '__main__':
     area = Area()
-    area.parse_input()
     # Part 1
+    area.parse_input()
     area.create_map()
     area.simulate_sand_drop()
     print(area.sand_grains_fell)
-    # Part 2
+    area.print_cave_map()
+    # # Part 2
+    area.parse_input(part=2)
     area.create_map_2()
     area.simulate_sand_drop_2()
     print(area.sand_grains_fell)
+    area.print_cave_map()
