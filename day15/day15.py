@@ -1,9 +1,7 @@
 import sys
-from typing import List, Dict, MutableSet, Tuple
+from typing import List, Dict, Tuple
 from enum import Enum, auto
 from dataclasses import dataclass
-from pprint import pprint
-from math import inf
 
 class State(Enum):
     sensor = auto()
@@ -34,6 +32,8 @@ class Beacon_zone:
     beacon_sensor_map: List[List[Point]]
     beacon_sensor_dict: Dict[Point, Point]
     line_number_considered: int
+    max_lines_to_consider: int
+    result_found: bool
     
     def __init__(self):
         self.beacon_sensor_map = []
@@ -44,9 +44,11 @@ class Beacon_zone:
         self.min_y = 100
         if (sys.argv[1] == '-s'):
             self.line_number_considered = 10
+            self.max_lines_to_consider = 20
         elif sys.argv[1] == '-t':
             self.line_number_considered = 2000000
-    
+            self.max_lines_to_consider = 4000000
+        self.result_found = False
     def __parse_expression(self, exp: str) -> int:
         exp = exp.replace(',', '')
         exp_split = exp.split('=')
@@ -146,6 +148,50 @@ class Beacon_zone:
                     cannot_be_beacons_list[(2 * sensor.coordinate.x - coordinate_to_check.x, row_being_considered)] = State.cannot_be_beacon
                 starting_index_x -= 1
         return cannot_be_beacons
+    
+    def find_beacons_on_row_interval(self, line_being_considered: int):
+        intervals: List[Tuple[int, int]] = []
+        sensors = self.beacon_sensor_dict.keys()
+        
+        # Form intervals where beacons cannot be present
+        for sensor in sensors:
+            closest_beacon = self.beacon_sensor_dict[sensor]
+            closest_beacon_distance = self.calculate_manhattan_distance(sensor.coordinate, closest_beacon.coordinate)
+            distance = closest_beacon_distance - abs(sensor.coordinate.y - line_being_considered)
+            if distance < 0:
+                continue
+            low_x = sensor.coordinate.x - distance
+            high_x = sensor.coordinate.x + distance
+            intervals.append((low_x, high_x))
+        
+        intervals.sort(key=lambda x: x[0])
+        
+        # Coallace the intervals so we have less things to check at the end
+        coallaced_intervals: List[Tuple[int, int]] = []
+        for low, high in intervals:
+            if not coallaced_intervals:
+                coallaced_intervals.append((low, high))
+                continue
+            last_interval_low, last_interval_high = coallaced_intervals[-1]
+            if low > last_interval_high + 1:
+                coallaced_intervals.append((low, high))
+            else:
+                coallaced_intervals[-1] = (last_interval_low, max(last_interval_high, high))
+        
+        # Find the breaking point
+        x = 0
+        for low, high in coallaced_intervals:
+            if x < low:
+                print(x * 4000000 + line_being_considered)
+                exit(0)
+            x = max(x, high + 1)
+            if x > self.max_lines_to_consider:
+                break
+    
+    def iterate_through_rows_fast(self):
+        rows_to_iterate = min(self.max_y, self.max_lines_to_consider)
+        for row in range(rows_to_iterate + 1):
+            self.find_beacons_on_row_interval(row)
             
     def print_zone(self):
         for row in self.beacon_sensor_map:
@@ -159,12 +205,8 @@ if __name__ == '__main__':
     # Visualize the map
     # beacon_zone.create_map()
     # beacon_zone.print_zone()
-    print(beacon_zone.line_number_considered)
-    print(beacon_zone.find_beacons_on_row_fast())
-    # Visualize the map after blocking
-    # beacon_zone.print_zone()
-    # print(beacon_zone.calculate_manhattan_distance(Coordinate(8, 7), Coordinate(1, 10)))
-    # print(beacon_zone.calculate_manhattan_distance(Coordinate(8, 7), Coordinate(2, 10)))
+    print(f'Part 1: {beacon_zone.find_beacons_on_row_fast()}')
+    print(f'Part 2: {beacon_zone.iterate_through_rows_fast()}')
     
     
     
